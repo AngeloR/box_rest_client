@@ -21,5 +21,5 @@ Thumbs.db
 
 # Eclipse generated files #
 ###########################
-.settings/*
-.buildpath
+/.settings/*
+/.buildpath
