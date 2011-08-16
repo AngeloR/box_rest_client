@@ -5,7 +5,7 @@
 session_start();
 
 // Include the Box_Rest_Client class
-include('Box_Rest_Client.php');
+include('lib/Box_Rest_Client.php');
 
 // Set your API Key. If you have a lot of pages reliant on the 
 // api key, then you should just set it statically in the 
@@ -34,4 +34,4 @@ else {
 $folder = $box_net->folder(0);
 
 // just so you can see the output
-var_dump($folder->file,$folder->folder[0]);
+var_dump($folder->folder[0],$folder->file,$folder->folder[0]->file[0]);

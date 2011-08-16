@@ -23,30 +23,44 @@
  * This is the main API class. This is what you will be invoking when you are dealing with the 
  * API. 
  * 
+ * I would suggest reading up the example.php file instead of trying to peruse through this 
+ * file as it's a little much to take in at once. The example.php file provides you the basics 
+ * of getting started. 
  * 
- * ---------------------------------------------------------------------------------------------
- * 						Where things stand
- * ---------------------------------------------------------------------------------------------
- * The current SSL setup is a bit of a hack. I've just disabled SSL verification 
- * on cURL. Instead, the better idea would be to implement something like this 
- * at some point: 
+ * If you want to inspect what various api-calls will return check out inspector.php which 
+ * provides a nice little interface to do just that.
  * 
- * http://unitstep.net/blog/2009/05/05/using-curl-in-php-to-access-https-ssltls-protected-sites/
+ * That being said, here's a quick intro to how to use this class. 
  * 
- * For now though, this should be more than enough to get things started. The class 
- * requires a rather in-depth knowledge of the box.net API and relies solely on the 
- * ReST implementation. Instead of nicely packaging all the API's in their own little 
- * methods, you call them manually via exec('resource',array('option'=>'option value')); 
+ * - If you are utilizing it on more than one page, definitely set the api_key within the 
+ * 		class. It will save you a lot of time. I am going to assume that you did just that.
+ * - I am assuming that you have !NOT! configured the Box_Rest_Client_Auth->store() 
+ * 		method and it is default. Therefore, it will just return the auth_token.
  * 
- * This returns a multi-dimensional array of the data received and it is up to you to
- * verify things. The only thing that this class DOES on it's own is the authentication 
- * mechanism since that is one of those special cases. 
+ * $box_rest_client = new Box_Rest_Client();
+ * if(!array_key_exists('auth',$_SESSION) || empty($_SESSION['auth']) {
+ * 	$box_rest_client->authenticate();
+ * }
+ * else {
+ * 	$_SESSION['auth'] = $box_rest_client->authenticate();
+ * }
  * 
- * In order to save the auth_token to a particular user you MUST provide an implementation for 
- * Box_Rest_Client_Auth->store(). This is a class that is present later on in this file. It is 
- * necessary that you do this to ensure that something is done with the auth-token that is 
- * returned. Otherwise, it will only last until the page is refreshed. Then YOU will need 
- * to provide some kind of mechanism to ensure that the auth-token is actually set.
+ * $box_rest_client->folder(0);
+ * 
+ * The above code will give you a nice little tree-representation of your files.
+ * 
+ * For more in-depth examples, either take a look at the example.php file or check out 
+ * inspector/index.php
+ * 
+ * @todo Proper SSL support
+ * 				The current SSL setup is a bit of a hack. I've just disabled SSL verification 
+ * 				on cURL. Instead, the better idea would be to implement something like this 
+ * 				at some point: 
+ * 
+ * 				http://unitstep.net/blog/2009/05/05/using-curl-in-php-to-access-https-ssltls-protected-sites/
+ * 
+ * @todo File Manipulation
+ * @todo Folder Manipulation
  * 
  * @author Angelo R
  *
@@ -57,7 +71,9 @@ class Box_Rest_Client {
 	public $ticket;
 	public $auth_token;
 	
-	private $rest_url = 'https://www.box.net/api/1.0/rest';
+	private $api_version = '1.0';
+	private $base_url = 'https://www.box.net/api';
+
 	
 	public $MOBILE = false;
 	
@@ -67,7 +83,7 @@ class Box_Rest_Client {
 	 * 
 	 * @param string $api_key
 	 */
-	public function __construct($api_key) {
+	public function __construct($api_key = '') {
 		if(empty($this->api_key) && empty($api_key)) {
 			throw new Box_Rest_Client_Exception('Invalid API Key. Please provide an API Key when creating an instance of the class, or by setting Box_Rest_Client->api_key');
 		}
@@ -215,7 +231,7 @@ class Box_Rest_Client {
 	 * @param array $opts
 	 */
 	private function build_url($api_func, array $opts) {
-		$base = $this->rest_url;
+		$base = $this->base_url.'/'.$this->api_version.'/rest';
 		
 		$base .= '?action='.$api_func;
 		foreach($opts as $key=>$val) {
@@ -290,7 +306,9 @@ class Box_Client_Folder {
 	 * 
 	 * Imports the tree structure and allows us to provide some extended functionality 
 	 * at some point. Don't run import manually. It expects certain things that are 
-	 * delivered through the API.
+	 * delivered through the API. Instead, if you need a tree structure of something, 
+	 * simply call Box_Rest_Client->folder(folder_id); and it will automatically return 
+	 * the right stuff.
 	 * 
 	 * Due to an inconsistency with the Box.net ReST API, this section invovles a few 
 	 * more checks than normal to ensure that all the necessary values are available 
