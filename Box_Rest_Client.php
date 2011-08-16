@@ -1,6 +1,32 @@
 <?php 
 /**
+ * The MIT License (MIT)
+ * Copyright (c) 2011 Angelo Rodrigues
  * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software 
+ * and associated documentation files (the "Software"), to deal in the Software without 
+ * restriction, including without limitation the rights to use, copy, modify, merge, publish, 
+ * distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom 
+ * the Software is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or 
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING 
+ * BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, 
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+ * This is the main API class. This is what you will be invoking when you are dealing with the 
+ * API. 
+ * 
+ * 
+ * ---------------------------------------------------------------------------------------------
+ * 						Where things stand
+ * ---------------------------------------------------------------------------------------------
  * The current SSL setup is a bit of a hack. I've just disabled SSL verification 
  * on cURL. Instead, the better idea would be to implement something like this 
  * at some point: 
@@ -22,7 +48,7 @@
  * returned. Otherwise, it will only last until the page is refreshed. Then YOU will need 
  * to provide some kind of mechanism to ensure that the auth-token is actually set.
  * 
- * @author SupportCon
+ * @author Angelo R
  *
  */
 class Box_Rest_Client {
@@ -42,11 +68,11 @@ class Box_Rest_Client {
 	 * @param string $api_key
 	 */
 	public function __construct($api_key) {
-		if(empty($api_key)) {
-			throw new Box_Rest_Client_Exception('Invalid API KEY');
+		if(empty($this->api_key) && empty($api_key)) {
+			throw new Box_Rest_Client_Exception('Invalid API Key. Please provide an API Key when creating an instance of the class, or by setting Box_Rest_Client->api_key');
 		}
 		else {
-			$this->api_key = $api_key;
+			$this->api_key = (empty($api_key))?$this->api_key:$api_key;
 		}
 	}
 	
@@ -87,7 +113,7 @@ class Box_Rest_Client {
 	
 	/**
 	 * 
-	 * This tree method is provided as it tends to be what a lot of people will most 
+	 * This folder method is provided as it tends to be what a lot of people will most 
 	 * likely try to do. It returns a list of folders/files utilizing our 
 	 * Box_Client_Folder and Box_Client_File classes instead of the raw tree array 
 	 * that is normally returned. 
@@ -99,13 +125,36 @@ class Box_Rest_Client {
 	 * @param string $params Any additional params you want to pass, comma separated.
 	 * @return Box_Client_Folder 
 	 */
-	public function tree($root,$params = 'nozip') {
+	public function folder($root,$params = 'nozip') {
 		$res = $this->exec('get_account_tree',array('folder_id'=>$root, 'params[]' => $params));
 		
 		$folder = new Box_Client_Folder;
 		$folder->import($res['tree']['folder']);
 		
 		return $folder;
+	}
+	
+	/**
+	 * 
+	 * Since we provide a way to get information on a folder, it's only fair that we 
+	 * provide the same interface for a file. This will grab the info for a file and 
+	 * push it back as a Box_Client_File. Note that this method (for some reason) 
+	 * gives you less information than if you got the info from the tree view. 
+	 * 
+	 * @param int $file_id
+	 * @return Box_Client_File
+	 */
+	public function file($file_id) {
+		$res = $this->exec('get_file_info',array('file_id' => $file_id));
+		
+		// For some reason the Box.net api returns two different representations 
+		// of a file. In a tree view, it returns the more attributes than 
+		// in a standard get_file_info view. As a result, we'll just trick the 
+		// implementation of import in Box_Client_File.
+		$res['@attributes'] = $res['info'];
+		$file = new Box_Client_File;
+		$file->import($res);
+		return $file;
 	}
 	
 	/**
@@ -198,7 +247,7 @@ class Box_Rest_Client {
  * The Box_Client_Folder class will contain an array of files, but will also have 
  * its own attributes. In addition. I've provided a series of CRUD operations that 
  * can be performed on a folder.
- * @author SupportCon
+ * @author Angelo R
  *
  */
 class Box_Client_Folder {
@@ -268,7 +317,7 @@ class Box_Client_Folder {
  * The Box_Client_File class will contain the attributes and tags that belong 
  * to a single file. In addition, I've provided a series of CRUD operations that can 
  * be performed on a file.
- * @author SupportCon
+ * @author Angelo R
  *
  */
 class Box_Client_File {
@@ -302,7 +351,7 @@ class Box_Client_File {
  * Since we invoke the class like ti has a constructor, you could potentially 
  * connect to a database and create more methods (apart from store) that could 
  * act as a model for the authentication token. 
- * @author SupportCon
+ * @author Angelo R
  *
  */
 class Box_Rest_Client_Auth {
@@ -317,7 +366,7 @@ class Box_Rest_Client_Auth {
  * Thrown if we encounter an error with the actual client class. This is fairly 
  * useless except it gives you a little more information about the type of error 
  * being thrown.
- * @author SupportCon
+ * @author Angelo R
  *
  */
 class Box_Rest_Client_Exception extends Exception {
@@ -328,7 +377,7 @@ class Box_Rest_Client_Exception extends Exception {
  * 
  * Thrown if we encounter an error with the API. This is fairly useless except 
  * it gives you a little more information about the type of error being thrown.
- * @author SupportCon
+ * @author Angelo R
  *
  */
 class Box_Rest_API_Exception extends Exception {

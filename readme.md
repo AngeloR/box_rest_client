@@ -12,3 +12,6 @@ publicly we could hunt down bugs and edge cases faster, resulting in a more robu
 (also working) version of the API.
 
 If you have any issues, PLEASE log them on the GitHub issues page.
+
+For information on how the client works, take a look at the example.php file which 
+will be updated as more features are added.
