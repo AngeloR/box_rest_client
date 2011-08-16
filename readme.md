@@ -1,16 +1,16 @@
-## What is it? ##
+## What is it?
 The Box_Rest_Client is a simple way to access the Box.net api utilizing the ReST 
 api through PHP. _The client is currently in early alpha testing and is 
 undergoing daily fixes and features._ If you have any questions please email me 
 at xangelo@gmail.com. For all bugs/issues, please report them on GitHub.
 
-## Dependencies ## 
+## Dependencies
 - cURL
 - SimpleXML
 - PHP version 5.3x (This is where it has been tested.. it continues the pass 
 tests in other vresions, please let me know and this can be updated)
 
-## How does it work? ##
+## How does it work?
 The `Box_Rest_Client` provides a standard way to execute various api methods from 
 the box.net api (version 1.0 at the time of writing this). While the library aims 
 to be very low-level (I'm not making any assumptions on what you want to do with 
@@ -26,6 +26,7 @@ get_account_tree api method you would do something like the following (note, the
 example assumes you have already set an api_key and authenticated a user).
 
 ```$box_rest_client = new Box_Rest_Client($api_key);
+
 $box_rest_client->exec('get_account_tree',array('params[]'=>'nozip'));```
 
 Of course there are "aliases" for commonly used api methods to ensure that you 
@@ -33,12 +34,13 @@ don't need to do a lot of work to get up and running with the box.net api.
 
 For more details and some code examples, take a look at the example.php file. 
 
-## Aliases ### 
+## Aliases
 Aliases are simply methods with the Box_Rest_Client class that can be run to 
 perform a series of actions instead of forcing you to run through a series of 
 api-methods manually. 
 
-### Authentication ### _replaces[[get_ticket](http://developers.box.net/w/page/12923936/ApiFunction_get_ticket),[get_auth_token](http://developers.box.net/w/page/12923930/ApiFunction_get_auth_token)]
+### Authentication 
+_replaces[[get_ticket](http://developers.box.net/w/page/12923936/ApiFunction_get_ticket),[get_auth_token](http://developers.box.net/w/page/12923930/ApiFunction_get_auth_token)]_
 To authenticate a user simply set the api_key and then do the following
 ```$box_rest_client->authenticate(); ```
 
@@ -57,7 +59,8 @@ After you have the auth-token, you will need to provide it to the
 `Box_Rest_Client` class every time.
 
 
-### File/Folder list ### _replaces[[get_account_tree](http://developers.box.net/w/page/12923929/ApiFunction_get_account_tree)]
+### File/Folder list
+_replaces[[get_account_tree](http://developers.box.net/w/page/12923929/ApiFunction_get_account_tree)]_
 Since the `get_account_tree` api method returns a result structure that varies 
 based on the setup of a certain directory, the get_account_tree api method is 
 aliased as ```$box_rest_client->folder(0)```
@@ -67,6 +70,6 @@ It will also ensure that the folders/files are of type `Box_Client_Folder`/`Box_
 respectively. These provide a standard interface for accessing properties of 
 the files and will eventually mean that we can add inidividual features to it.
 
-## Bugs/Issues ## 
+## Bugs/Issues 
 If you find any issues while utilizing the Box_Rest_Client, please log them on 
 GitHub instead of emailing me. 
