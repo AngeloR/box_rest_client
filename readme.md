@@ -1,4 +1,4 @@
-The current state of the box.net PHP api is terrible. I can't even get it to work. 
+The current state of the box.net PHP library is terrible. I can't even get it to work. 
 It throws errors right out of the box. That isn't the way a "library" should 
 behave. 
 

@@ -108,6 +108,9 @@ class Box_Rest_Client {
 				}
 				
 			}
+			else {
+				throw new Box_Rest_API_Exception($res['status']);
+			}
 		}
 	}
 	
@@ -127,10 +130,12 @@ class Box_Rest_Client {
 	 */
 	public function folder($root,$params = 'nozip') {
 		$res = $this->exec('get_account_tree',array('folder_id'=>$root, 'params[]' => $params));
-		
+		var_dump($res['tree']['folder']);
+	
 		$folder = new Box_Client_Folder;
-		$folder->import($res['tree']['folder']);
-		
+		if(array_key_exists('tree',$res)) {
+			$folder->import($res['tree']['folder']);
+		}
 		return $folder;
 	}
 	
@@ -284,7 +289,12 @@ class Box_Client_Folder {
 	/**
 	 * 
 	 * Imports the tree structure and allows us to provide some extended functionality 
-	 * at some point. 
+	 * at some point. Don't run import manually. It expects certain things that are 
+	 * delivered through the API.
+	 * 
+	 * Due to an inconsistency with the Box.net ReST API, this section invovles a few 
+	 * more checks than normal to ensure that all the necessary values are available 
+	 * when doing the import.
 	 * @param array $tree
 	 */
 	public function import(array $tree) {
@@ -293,16 +303,40 @@ class Box_Client_Folder {
 		}
 		
 		if(array_key_exists('folders',$tree)) {
-			foreach($tree['folders'] as $i => $folder) {
-				$this->folder[$i] = new Box_Client_Folder();
-				$this->folder[$i]->import($folder); 
+			if(array_key_exists('folder',$tree['folders'])) {
+				if(array_key_exists('@attributes',$tree['folders']['folder'])) {
+					// this is the case when there is a single folder within the root
+					$box_folder = new Box_Client_Folder;
+					$box_folder->import($tree['folders']['folder']);
+					$this->folder[] = $box_folder;
+				}
+				else {
+					// this is the case when there are multiple folders within the root
+					foreach($tree['folders']['folder'] as $i => $folder) {
+						$box_folder = new Box_Client_Folder;
+						$box_folder->import($folder);
+						$this->folder[] = $box_folder;
+					}
+				}
 			}
 		}
 		
 		if(array_key_exists('files',$tree)) {
-			foreach($tree['files'] as $i => $file) {
-				$this->file[$i] = new Box_Client_File();
-				$this->file[$i]->import($file);
+			if(array_key_exists('file',$tree['files'])) {
+				if(array_key_exists('@attributes',$tree['files']['file'])) {
+					// this is the case when there is a single file within a directory
+					$box_file = new Box_Client_File;
+					$box_file->import($tree['files']['file']);
+					$this->file[] = $box_file;
+				}
+				else {
+					// this is the case when there are multiple files in a directory
+					foreach($tree['files']['file'] as $i => $file) {
+						$box_file = new Box_Client_File;
+						$box_file->import($file);
+						$this->file[] = $box_file;
+					}
+				}
 			}
 		}
 	}
@@ -357,7 +391,7 @@ class Box_Client_File {
 class Box_Rest_Client_Auth {
 	
 	public function store($auth_token) {
-		$_SESSION['auth'] = $auth_token;
+		return $auth_token;
 	}
 }
 

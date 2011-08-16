@@ -10,7 +10,7 @@ include('Box_Rest_Client.php');
 // Set your API Key. If you have a lot of pages reliant on the 
 // api key, then you should just set it statically in the 
 // Box_Rest_Client class.
-$api_key = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+$api_key = '8m8kl3acvplo438izp3v4se622h5m86q';
 
 
 // create an instance of the client and pass in the api_key
@@ -19,10 +19,9 @@ $box_net = new Box_Rest_Client($api_key);
 // run the authentication method to authenicate a user against 
 // box.net. The authenticate method that is being called will 
 // called the Box_Rest_Client_Auth::store() method which is 
-// by default just configured to store the key in a session 
-// called auth
-if(!array_key_exists('auth',$_SESSION)) {
-	$box_net->authenticate();
+// by default just configured to return the auth_token
+if(!array_key_exists('auth',$_SESSION) || empty($_SESSION['auth'])) {
+	$_SESSION['auth'] = $box_net->authenticate();
 }
 else {
 	// If the auth $_SESSION key exists, then we can say that 
@@ -35,4 +34,4 @@ else {
 $folder = $box_net->folder(0);
 
 // just so you can see the output
-var_dump($folder);
+var_dump($folder->file,$folder->folder[0]);
