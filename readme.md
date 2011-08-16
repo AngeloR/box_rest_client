@@ -25,9 +25,9 @@ well as any parameters that need to be passed. As an example, to use the
 get_account_tree api method you would do something like the following (note, the 
 example assumes you have already set an api_key and authenticated a user).
 
-```$box_rest_client = new Box_Rest_Client($api_key);
+  $box_rest_client = new Box_Rest_Client($api_key);
 
-$box_rest_client->exec('get_account_tree',array('params[]'=>'nozip'));```
+  $box_rest_client->exec('get_account_tree',array('params[]'=>'nozip'));
 
 Of course there are "aliases" for commonly used api methods to ensure that you 
 don't need to do a lot of work to get up and running with the box.net api. 
