@@ -19,6 +19,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
+/**
+ *
+ * I recommend that you pull this class into its own file and the proceed to make
+ * any modifications to it you want. It will always receive the auth_token as the
+ * first argument and then you are free to do whatever you want with it.
+ *
+ * Since we invoke the class like ti has a constructor, you could potentially
+ * connect to a database and create more methods (apart from store) that could
+ * act as a model for the authentication token.
+ * @author Angelo R
+ *
+ */
+class Box_Rest_Client_Auth {
+
+	public function store($auth_token) {
+		return $auth_token;
+	}
+}
+
 class Rest_Client {
 	
 	public static function get($url) {
@@ -45,6 +65,8 @@ class Rest_Client {
 		return $data;
 	}
 }
+
+
 
 /**
  * This is the main API class. This is what you will be invoking when you are dealing with the 
@@ -152,7 +174,7 @@ class Box_Rest_Client {
 				
 			}
 			else {
-				throw new Box_Rest_API_Exception($res['status']);
+				throw new Box_Rest_Client_Exception($res['status']);
 			}
 		}
 	}
@@ -434,25 +456,6 @@ class Box_Client_File {
 
 /**
  * 
- * I recommend that you pull this class into its own file and the proceed to make 
- * any modifications to it you want. It will always receive the auth_token as the 
- * first argument and then you are free to do whatever you want with it. 
- * 
- * Since we invoke the class like ti has a constructor, you could potentially 
- * connect to a database and create more methods (apart from store) that could 
- * act as a model for the authentication token. 
- * @author Angelo R
- *
- */
-class Box_Rest_Client_Auth {
-	
-	public function store($auth_token) {
-		return $auth_token;
-	}
-}
-
-/**
- * 
  * Thrown if we encounter an error with the actual client class. This is fairly 
  * useless except it gives you a little more information about the type of error 
  * being thrown.
@@ -462,14 +465,3 @@ class Box_Rest_Client_Auth {
 class Box_Rest_Client_Exception extends Exception {
 	
 }
-
-/**
- * 
- * Thrown if we encounter an error with the API. This is fairly useless except 
- * it gives you a little more information about the type of error being thrown.
- * @author Angelo R
- *
- */
-class Box_Rest_API_Exception extends Exception {
-	
-} 
