@@ -35,3 +35,6 @@ $folder = $box_net->folder(0);
 
 // just so you can see the output
 var_dump($folder->folder[0],$folder->file,$folder->folder[0]->file[0]);
+
+// Let us create a folder
+$box_net->post('create_folder',array('parent_id' => 0, 'name' => 'Box_Rest_Client', 'share' => 1));

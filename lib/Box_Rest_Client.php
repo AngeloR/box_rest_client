@@ -19,6 +19,33 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+class Rest_Client {
+	
+	public static function get($url) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		$data = curl_exec($ch);
+		curl_close($ch);
+		
+		return $data;
+	}
+	
+	public static function post($url,array $params = array()) {
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
+		$data = curl_exec($ch);
+		curl_close($ch);
+		
+		return $data;
+	}
+}
+
 /**
  * This is the main API class. This is what you will be invoking when you are dealing with the 
  * API. 
@@ -180,29 +207,40 @@ class Box_Rest_Client {
 	
 	/**
 	 * 
-	 * Executes an api function using the required opts. It will attempt to 
+	 * Executes an api function using get with the required opts. It will attempt to 
 	 * execute it regardless of whether or not it exists.
 	 * 
 	 * @param string $api
 	 * @param array $opts
 	 */
-	public function exec($api, array $opts = array()) {
+	public function get($api, array $opts = array()) {
 		$opts = $this->set_opts($opts);
 		$url = $this->build_url($api,$opts);
 		
-		$ch = curl_init();
-		curl_setopt($ch, CURLOPT_URL, $url);
-		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-		$data = curl_exec($ch);
-		curl_close($ch);
+		$data = Rest_Client::get($url);
 
 		return $this->parse_result($data);
 	}
 	
 	/**
+	*
+	* Executes an api function using post with the required opts. It will
+	* attempt to execute it regardless of whether or not it exists.
+	*
+	* @param string $api
+	* @param array $opts
+	*/
+	public function post($api, array $params = array(), array $opts = array()) {
+		$opts = $this->set_opts($opts);
+		$url = $this->build_url($api,$opts);
+		
+		$data = Rest_Client::post($url,$params);
+		return $this->parse_result($data);
+	}
+	
+	/**
 	 * 
-	 * To minimize having to remember things, exec will automatically 
+	 * To minimize having to remember things, get/post will automatically 
 	 * call this method to set some default values as long as the default 
 	 * values don't already exist.
 	 * 
