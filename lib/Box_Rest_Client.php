@@ -161,7 +161,7 @@ class Box_Rest_Client {
 			return $box_rest_client_auth->store($this->auth_token);
 		}
 		else {
-			$res = $this->exec('get_ticket',array('api_key' => $this->api_key));
+			$res = $this->get('get_ticket',array('api_key' => $this->api_key));
 			if($res['status'] === 'get_ticket_ok') {
 				$this->ticket = $res['ticket'];
 				
@@ -186,7 +186,7 @@ class Box_Rest_Client {
 	 * Box_Client_Folder and Box_Client_File classes instead of the raw tree array 
 	 * that is normally returned. 
 	 * 
-	 * You can totally ignore this and instead rely entirely on exec and parse the 
+	 * You can totally ignore this and instead rely entirely on get/post and parse the 
 	 * tree yourself if it doesn't quite do what you want. 
 	 * 
 	 * @param int $root The root directory that you want to load the tree from.
@@ -194,7 +194,7 @@ class Box_Rest_Client {
 	 * @return Box_Client_Folder 
 	 */
 	public function folder($root,$params = 'nozip') {
-		$res = $this->exec('get_account_tree',array('folder_id'=>$root, 'params[]' => $params));
+		$res = $this->get('get_account_tree',array('folder_id'=>$root, 'params[]' => $params));
 		var_dump($res['tree']['folder']);
 	
 		$folder = new Box_Client_Folder;
@@ -215,7 +215,7 @@ class Box_Rest_Client {
 	 * @return Box_Client_File
 	 */
 	public function file($file_id) {
-		$res = $this->exec('get_file_info',array('file_id' => $file_id));
+		$res = $this->get('get_file_info',array('file_id' => $file_id));
 		
 		// For some reason the Box.net api returns two different representations 
 		// of a file. In a tree view, it returns the more attributes than 
