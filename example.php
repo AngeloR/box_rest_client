@@ -10,7 +10,7 @@ include('lib/Box_Rest_Client.php');
 // Set your API Key. If you have a lot of pages reliant on the 
 // api key, then you should just set it statically in the 
 // Box_Rest_Client class.
-$api_key = '8m8kl3acvplo438izp3v4se622h5m86q';
+$api_key = 'xxxxxxxxxxxx';
 
 
 // create an instance of the client and pass in the api_key
