@@ -295,7 +295,14 @@ class Box_Rest_Client {
 		
 		$base .= '?action='.$api_func;
 		foreach($opts as $key=>$val) {
-			$base .= '&'.$key.'='.$val;
+			if(is_array($val)) {
+				foreach($val as $i => $v) {
+					$base.= '&'.$key.'[]='.$v;
+				}
+			}
+			else {
+				$base .= '&'.$key.'='.$val;
+			}
 		}
 		
 		return $base;
