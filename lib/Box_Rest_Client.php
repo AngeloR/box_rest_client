@@ -1,5 +1,56 @@
 <?php 
 /**
+ *    ___  ____ _  _     ____ ____ ____ ___     ____ _    _ ____ _  _ ___ 
+ *		|__] |  |  \/      |__/ |___ [__   |      |    |    | |___ |\ |  |  
+ *		|__] |__| _/\_ ___ |  \ |___ ___]  |  ___ |___ |___ | |___ | \|  |  v0.2
+ *
+ *
+ *
+ *	The Box_Rest_Client is a PHP library for accessing the Box.net ReST api. It 
+ *	provides a PHP cURL based interface that allows access to any number of 
+ *  api methods that are currently in place. The code is built in a way to 
+ *  ensure modularity, easy updates (everything is this one file) and aims to 
+ *  be a simple easy to use solution for working with the excellent Box api. 
+ *  
+ *  Each of the classes in this file was licensed under the MIT Licensing 
+ *  agreement located below this introductary comment block. 
+ *  
+ *  Dependencies:
+ *  	1) cURL: This library relies on cURL to perform the http verbs. Without 
+ *  			it, this library will not function. There are plenty of tutorials for 
+ *  			enabling cURL on your specific system out there on the web, just a 
+ *  			short google away.
+ *  	2) SimpleXML: Results from the Box api currently return (sometimes 
+ *  			malformed) xml. It is enabled by default unless you specifically 
+ *  			disabled it during install.. in which case you probably know what 
+ *  			you're doing.
+ *  	3) This code has only been tested on the following versions of PHP: 
+ *  			5.3.5,
+ *  
+ *  			If you have tested this code and believe it to be working on a 
+ *  			different version, please drop me an email.
+ *  
+ *  
+ *  Installation:
+ *  	1) Copy this file wherever you want.
+ *  	2) Copy the Box_Rest_Client_Auth class and paste it in its own file. This 
+ *  			class is called after an auth_token is received from the API. You 
+ *  			need to decide what to do with it. Box says that the auth_tokens 
+ *  			never expire..so maybe you want to store them? At least in a session.
+ *  
+ *  
+ *  
+ *  Using:
+ *  	I recommend that you check out the example.php file that was included 
+ *  	with this download for how to use it. There will hopefully be some more 
+ *  	documentation on the wiki, but at the moment I can't really concentrate 
+ *  	on building the library and having detailed examples of each API method.
+ *  
+ *	                                                                    
+ */
+
+
+/**
  * The MIT License (MIT)
  * Copyright (c) 2011 Angelo Rodrigues
  * 
@@ -26,7 +77,7 @@
  * any modifications to it you want. It will always receive the auth_token as the
  * first argument and then you are free to do whatever you want with it.
  *
- * Since we invoke the class like ti has a constructor, you could potentially
+ * Since we invoke the class like it has a constructor, you could potentially
  * connect to a database and create more methods (apart from store) that could
  * act as a model for the authentication token.
  * @author Angelo R
@@ -472,3 +523,12 @@ class Box_Client_File {
 class Box_Rest_Client_Exception extends Exception {
 	
 }
+
+/* 
+ * 53 6F 6C 6F 6E 
+ * 67 61 6E 64 74 
+ * 68 61 6E 6B 73 
+ * 66 6F 72 61 6C 
+ * 6C 74 68 65 66 
+ * 69 73 68 
+ */
