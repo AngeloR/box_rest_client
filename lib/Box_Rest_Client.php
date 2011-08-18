@@ -90,6 +90,14 @@ class Box_Rest_Client_Auth {
 	}
 }
 
+/**
+ * 
+ * The ReST Client is really what powers the entire class. It provides access 
+ * the the basic HTTP verbs that are currently supported by Box
+ * @author SupportCon
+ *
+ */
+
 class Rest_Client {
 	
 	public static function get($url) {
@@ -244,9 +252,9 @@ class Box_Rest_Client {
 	 * @param string $params Any additional params you want to pass, comma separated.
 	 * @return Box_Client_Folder 
 	 */
-	public function folder($root,$params = 'nozip') {
-		$res = $this->get('get_account_tree',array('folder_id'=>$root, 'params[]' => $params));
-		var_dump($res['tree']['folder']);
+	public function folder($root,$params = array('params' => array('nozip'))) {
+		$params['folder_id'] = $root;
+		$res = $this->get('get_account_tree', $params);
 	
 		$folder = new Box_Client_Folder;
 		if(array_key_exists('tree',$res)) {
