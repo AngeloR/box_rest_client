@@ -412,6 +412,33 @@ class Box_Client_Folder {
 	
 	/**
 	 * 
+	 * This method will create a folder in the folder that is assigned as the 
+	 * "parent_id". Simply calling this method with a folder name will create 
+	 * this folder in the root directory and keep it private. 
+	 * 
+	 * @param string $name
+	 * @param int $parent_id
+	 * @param bool $share
+	 */
+	public function create($name, $parent_id = 0, $share = false) {
+		$params = array(
+			'parent_id' => intval($parent_id),
+			'name' => trim($name),
+			'share' => (bool)$share
+		);
+		
+		
+		$res = $box_net->post('create_folder',$params);
+		if($res['status'] == 'create_ok') {
+			foreach($res['folder'] as $key => $val) {
+				$this->attr($key,$val);
+			}
+		}
+		return $res['status'];
+	}
+	
+	/**
+	 * 
 	 * Acts as a getter and setter for various attributes. You should know the name 
 	 * of the attribute that you are trying to access.
 	 * @param string $key
