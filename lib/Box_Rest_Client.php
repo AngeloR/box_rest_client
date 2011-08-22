@@ -288,6 +288,43 @@ class Box_Rest_Client {
 	
 	/**
 	 * 
+	 * Creates a folder on the server with the specified attributes.
+	 * @param Box_Client_Folder $folder
+	 */
+	public function create(Box_Client_Folder &$folder) {
+		$params = array(
+			'name' => $folder->attr('name'),
+			'parent_id' => $folder->attr('parent_id'),
+			'share' => $folder->attr('share')
+		);
+		$res = $this->post('create_folder',$params);
+		if($res['status'] == 'create_ok') {
+			foreach($res['folder'] as $key => $val) {
+				$folder->attr($key,$val);
+			}
+		}
+		return $res['status'];
+	}
+	
+	/**
+	 * Returns the url to upload a file to the specified parent folder
+	 */
+	public static function upload_url($folder_id = 0) {
+		
+	}
+	
+	/**
+	 * 
+	 * Uploads the file to the specified folder. You can set the parent_id 
+	 * attribute on the file for this to work.
+	 * @param Box_Client_File $file
+	 */
+	public function upload(Box_Client_File &$file) {
+		
+	}
+	
+	/**
+	 * 
 	 * Executes an api function using get with the required opts. It will attempt to 
 	 * execute it regardless of whether or not it exists.
 	 * 
@@ -421,20 +458,9 @@ class Box_Client_Folder {
 	 * @param bool $share
 	 */
 	public function create($name, $parent_id = 0, $share = false) {
-		$params = array(
-			'parent_id' => intval($parent_id),
-			'name' => trim($name),
-			'share' => (bool)$share
-		);
-		
-		
-		$res = $box_net->post('create_folder',$params);
-		if($res['status'] == 'create_ok') {
-			foreach($res['folder'] as $key => $val) {
-				$this->attr($key,$val);
-			}
-		}
-		return $res['status'];
+		$this->attr('name',$name);
+		$this->attr('parent_id',intval($parent_id));
+		$this->attr('share',int($share));
 	}
 	
 	/**
@@ -529,6 +555,13 @@ class Box_Client_File {
 	
 	private $attr;
 	private $tags;
+
+	
+	public function __construct($path_to_file = '') {
+		if(!empty($path_to_file)) {
+			$this->attr('localpath',$path_to_file);
+		}
+	}
 	
 	/**
 	 * 
@@ -545,7 +578,38 @@ class Box_Client_File {
 			$tags[$i] = $tag;
 		}
 	}
+	
+	/**
+	 * 
+	 * Gets or sets file attributes. For a complete list of attributes please 
+	 * check the info object (get_file_info)
+	 * @param string $key
+	 * @param mixed $value
+	 */
+	public function attr($key,$value = '') {
+		if(array_key_exists($key,$this->attr)) {
+			if(empty($value)) {
+				return $this->attr[$key];
+			}
+			else { 
+				$this->attr[$key] = $value;
+			}
+		}
+	}
+	
+	public function tag() {
+		
+	}
 }
+
+$file = new Box_Client_File('/uploads/file.tmp');
+$box_rest_client->upload($file);
+
+$folder = new Box_Client_Folder();
+$folder->attr('parent_id', 945);
+$folder->attr('name','Some Name');
+$folder->attr('share',5);
+$box_rest_client->create($folder);
 
 /**
  * 
