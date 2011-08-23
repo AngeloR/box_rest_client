@@ -101,8 +101,9 @@ function br($num) {
 					<?php br(5); ?>
 					<h2><a name="step3">Create a folder</a></h2>
 					<p>Creating a folder is very simple. You can simply create an 
-					instance of "Box_Client_Folder", then call the create method with <br>
-					- The name of the folder<br>
+					instance of "Box_Client_Folder", then just set the following through 
+					the <code>attr()</code> method. <br>
+					- The name of the folder.<br>
 					- The id of the parent folder (or leave blank for the root folder)<br>
 					- Whether or not to share the folder (by default, this is set to false) </p>
 					<br>
@@ -121,10 +122,10 @@ include(\'lib/Box_Rest_Client.php\');
 // api key, then you should just set it statically in the 
 // Box_Rest_Client class.
 $api_key = \'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\';
-
-// create an instance of the client and pass in the api_key
 $box_net = new Box_Rest_Client($api_key);
 					
+
+
 if(!array_key_exists(\'auth\',$_SESSION) || empty($_SESSION[\'auth\'])) {
 	$_SESSION[\'auth\'] = $box_net->authenticate();
 }
@@ -137,11 +138,18 @@ else {
 '); br(16); ?>
 <?php highlight_string('<?php 
 $folder = $box_net->folder(0); 
-?>'); br(11); ?>
+?>'); br(9); ?>
 
 <?php highlight_string('<?php 
 $my_folder = new Box_Client_Folder();
-$my_folder->create(\'New Folder\',0,false);
+
+$my_folder->attr(\'name\',\'New Folder\');
+$my_folder->attr(\'parent_id\', 0);
+
+$my_folder->attr(\'share\',false);
+
+
+$box_net->create($folder);
 ?>')?>
 				</td>
 			</tr>
