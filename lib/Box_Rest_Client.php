@@ -181,6 +181,7 @@ class Box_Rest_Client {
 	
 	private $api_version = '1.0';
 	private $base_url = 'https://www.box.net/api';
+	private $upload_url = 'https://upload.box.net/api';
 
 	
 	public $MOBILE = false;
@@ -294,8 +295,8 @@ class Box_Rest_Client {
 	public function create(Box_Client_Folder &$folder) {
 		$params = array(
 			'name' => $folder->attr('name'),
-			'parent_id' => $folder->attr('parent_id'),
-			'share' => $folder->attr('share')
+			'parent_id' => intval($folder->attr('parent_id')),
+			'share' => intval($folder->attr('share'))
 		);
 		$res = $this->post('create_folder',$params);
 		if($res['status'] == 'create_ok') {
@@ -303,6 +304,7 @@ class Box_Rest_Client {
 				$folder->attr($key,$val);
 			}
 		}
+		
 		return $res['status'];
 	}
 	
@@ -316,11 +318,51 @@ class Box_Rest_Client {
 	/**
 	 * 
 	 * Uploads the file to the specified folder. You can set the parent_id 
-	 * attribute on the file for this to work.
+	 * attribute on the file for this to work. Because of how the API currently 
+	 * works, be careful!! If you upload a file for the first time, but a file 
+	 * of that name already exists in that location, this will automatically 
+	 * overwrite it.
+	 * 
 	 * @param Box_Client_File $file
+	 * @param array $params A list of valid input params can be found at the Download
+	 * 											and upload method list at http://developers.box.net
+	 * 
 	 */
-	public function upload(Box_Client_File &$file) {
+	public function upload(Box_Client_File &$file, array $params = array()) {
+		if(array_key_exists('new_copy', $params) && $params['new_copy'] && intval($file->attr('id')) !== 0) {
+			// This is a valid file for new copy, we can new_copy
+			$url = $this->upload_url.'/'.$this->api_version.'/new_copy/'.$this->auth_token.'/'.$file->attr('id');
+		}
+		else if(intval($file->attr('file_id')) !== 0 && !$new_copy) {
+			// This file is overwriting another
+			$url = $this->upload_url.'/'.$this->api_version.'/overwrite/'.$this->auth_token.'/'.$file->attr('id');
+		}
+		else {
+			// This file is a new upload
+			$url = $this->upload_url.'/'.$this->api_version.'/upload/'.$this->auth_token.'/'.$file->attr('id');
+		}
 		
+		// assign a file name during construction OR by setting $file->attr('filename'); 
+		// manually
+		$split = explode('\\',$file->attr('localpath'));
+		$split[count($split)-1] = $file->attr('filename');
+		$new_localpath = implode('\\',$split);
+		if(!rename($file->attr('localpath'), $new_localpath)) {
+			throw new Box_Rest_Client_Exception('Uploaded file could not be renamed.');
+		}
+		$file->attr('localpath',$new_localpath);
+		$params['file'] = '@'.$file->attr('localpath');
+		
+		$res = $this->parse_result(Rest_Client::post($url,$params));
+		// delete the localfile
+		unlink($file->attr('localpath'));
+		
+		// only import if the status was successful
+		if($res['status'] == 'upload_ok') {
+			$file->import($res['files']['file']);
+		}
+		
+		return $res['status'];
 	}
 	
 	/**
@@ -446,23 +488,7 @@ class Box_Client_Folder {
 		$this->file = array();
 		$this->folder = array();
 	}
-	
-	/**
-	 * 
-	 * This method will create a folder in the folder that is assigned as the 
-	 * "parent_id". Simply calling this method with a folder name will create 
-	 * this folder in the root directory and keep it private. 
-	 * 
-	 * @param string $name
-	 * @param int $parent_id
-	 * @param bool $share
-	 */
-	public function create($name, $parent_id = 0, $share = false) {
-		$this->attr('name',$name);
-		$this->attr('parent_id',intval($parent_id));
-		$this->attr('share',int($share));
-	}
-	
+
 	/**
 	 * 
 	 * Acts as a getter and setter for various attributes. You should know the name 
@@ -470,14 +496,12 @@ class Box_Client_Folder {
 	 * @param string $key
 	 * @param mixed $value
 	 */
-	public function attr($key,$value = '') {
-		if(array_key_exists($key,$this->attr)) {
-			if(empty($value)) {
-				return $this->attr[$key];
-			}
-			else { 
-				$this->attr[$key] = $value;
-			}
+	public function attr($key,$value = '') {		
+		if(empty($value) && array_key_exists($key,$this->attr)) {
+			return $this->attr[$key];
+		}
+		else { 
+			$this->attr[$key] = $value;
 		}
 	}
 	
@@ -557,10 +581,16 @@ class Box_Client_File {
 	private $tags;
 
 	
-	public function __construct($path_to_file = '') {
+	public function __construct($path_to_file = '', $file_name = '') {
+		$this->attr = array();
 		if(!empty($path_to_file)) {
 			$this->attr('localpath',$path_to_file);
+			
+			if(!empty($file_name)) {
+				$this->attr('filename',$file_name);
+			}
 		}
+		
 	}
 	
 	/**
@@ -574,8 +604,10 @@ class Box_Client_File {
 			$this->attr[$key] = $val;
 		}
 		
-		foreach($file['tags'] as $i => $tag) {
-			$tags[$i] = $tag;
+		if(array_key_exists('tags',$file)) {
+			foreach($file['tags'] as $i => $tag) {
+				$tags[$i] = $tag;
+			}
 		}
 	}
 	
@@ -586,14 +618,12 @@ class Box_Client_File {
 	 * @param string $key
 	 * @param mixed $value
 	 */
-	public function attr($key,$value = '') {
-		if(array_key_exists($key,$this->attr)) {
-			if(empty($value)) {
-				return $this->attr[$key];
-			}
-			else { 
-				$this->attr[$key] = $value;
-			}
+	public function attr($key,$value = '') {		
+		if(empty($value) && array_key_exists($key,$this->attr)) {
+			return $this->attr[$key];
+		}
+		else { 
+			$this->attr[$key] = $value;
 		}
 	}
 	
@@ -601,15 +631,6 @@ class Box_Client_File {
 		
 	}
 }
-
-$file = new Box_Client_File('/uploads/file.tmp');
-$box_rest_client->upload($file);
-
-$folder = new Box_Client_Folder();
-$folder->attr('parent_id', 945);
-$folder->attr('name','Some Name');
-$folder->attr('share',5);
-$box_rest_client->create($folder);
 
 /**
  * 
