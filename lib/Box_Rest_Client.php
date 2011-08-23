@@ -85,6 +85,13 @@
  */
 class Box_Rest_Client_Auth {
 
+	/**
+	 * 
+	 * This is the method that is called whenever an authentication token is  
+	 * received. 
+	 * 
+	 * @param string $auth_token
+	 */
 	public function store($auth_token) {
 		return $auth_token;
 	}
@@ -94,12 +101,18 @@ class Box_Rest_Client_Auth {
  * 
  * The ReST Client is really what powers the entire class. It provides access 
  * the the basic HTTP verbs that are currently supported by Box
- * @author SupportCon
+ * @author Angelo R.
  *
  */
 
 class Rest_Client {
 	
+	/**
+	 * 
+	 * Perform any get type operation on a url
+	 * @param string $url
+	 * @return string The resulting data from the get operation
+	 */
 	public static function get($url) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -111,6 +124,12 @@ class Rest_Client {
 		return $data;
 	}
 	
+	/**
+	 * 
+	 * Perform any post type operation on a url
+	 * @param string $url
+	 * @param array $params A list of post-based params to pass
+	 */
 	public static function post($url,array $params = array()) {
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $url);
@@ -322,6 +341,11 @@ class Box_Rest_Client {
 	 * works, be careful!! If you upload a file for the first time, but a file 
 	 * of that name already exists in that location, this will automatically 
 	 * overwrite it.
+	 * 
+	 * If you use this method of file uploading, be warned! The file will bounce! 
+	 * This means that the file will FIRST be uploaded to your servers and then 
+	 * it will be uploaded to Box. If you want to bypass your server, call the 
+	 * "upload_url" method instead.
 	 * 
 	 * @param Box_Client_File $file
 	 * @param array $params A list of valid input params can be found at the Download
@@ -580,7 +604,18 @@ class Box_Client_File {
 	private $attr;
 	private $tags;
 
-	
+	/**
+	 * 
+	 * During construction, you can specify a path to a file and a file name. This 
+	 * will prep the Box_Client_File instance for an upload. If you do not wish 
+	 * to upload a file, simply instantiate this class without any attributes. 
+	 * 
+	 * If you want to fill this class with the details of a specific file, then 
+	 * get_file_info and it will be imported into its own Box_Client_File class.
+	 * 
+	 * @param string $path_to_file
+	 * @param string $file_name
+	 */
 	public function __construct($path_to_file = '', $file_name = '') {
 		$this->attr = array();
 		if(!empty($path_to_file)) {
