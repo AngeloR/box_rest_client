@@ -2,7 +2,7 @@
 
 include('lib/Box_Rest_Client.php');
 
-$api_key = '8m8kl3acvplo438izp3v4se622h5m86q';
+$api_key = '';
 $box_net = new Box_Rest_Client($api_key);
 
 
