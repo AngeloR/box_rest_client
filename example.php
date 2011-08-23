@@ -74,6 +74,7 @@ function br($num) {
 						<li><a href="#step2">Get a list of files and folders</a></li>
 						<li><a href="#step3">Create a folder</a></li>
 						<li><a href="#step4">Upload a file</a></li>
+						<li><a href="#step5">Do Anything Else (GET)</a></li>
 					</ol>
 					<hr>
 					<h2><a name="step1">Authenticate a user</a></h2>
@@ -126,6 +127,16 @@ function br($num) {
 					will be uploading this folder to.</p>
 					<p>Finally, you will call the upload method on the <code>Box_Rest_Client</code> 
 					passing in the <code>$file</code> that you created. 
+					<?php br(5); ?>
+					<h2><a name="step5">Do Anything Else (GET)</a></h2>
+					<p>Bundled with Box_Rest_Client, is the ability to perform ANY GET/POST 
+					call on the Box api. That's right. Even if there is no "custom" method 
+					for you to do what you want, you can still do it.</p><br>
+					<p>For example, there is currently no built in way to call the 
+					<code>collaboration_change_item_role</code> method. But that's no 
+					problem. Simply create an instance of the Box_Rest_Client</p><br>
+					<p>Then call your api method! It will return an array representation 
+					of the XML response that is normally returned.</p>
 				</td>
 				<td class="spanner" id="code">
 					<?php br(23); ?>
@@ -174,6 +185,16 @@ $file = new Box_Client_File($_FILES[\'file\'][\'tmp_name\'], $_FILES[\'file\'][\
 $file->attr(\'folder_id\', 0);
 
 $box_net->upload($file);
+?>'); br(12); ?>
+
+<?php highlight_string('<?php 
+$box_net = new Box_Rest_Client($api_key);
+
+
+$res = $box_net->get(\'collaboration_change_item_role\', array(
+	\'collaboration_id\' => 134834,
+	\'item_role_name\' => \'viewer\'
+));
 ?>'); ?>
 				</td>
 			</tr>
