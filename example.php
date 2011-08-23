@@ -111,6 +111,21 @@ function br($num) {
 					folder you just created. The create method will also return a value 
 					to indicate whether or not the error was successful. The values 
 					returned match directly with possible status output params.</p>
+					<?php br(5); ?>
+					<h2><a name="step4">Upload a File</a></h2>
+					<p>There are two ways to upload a file. The first method is the 
+					"bounce". In this method the file is first uploaded to your servers 
+					and then is pushed onwards to Box. The second method directly pushes 
+					a file over to Box. </p><?php br(1); ?>
+					<p><b>Bounce Method</b><br></p>
+					<p>To upload a file you need to create an instance of the 
+					<code>Box_Client_File</code> class. Then you just need to supply 
+					the path to the uploaded file and the new file name during 
+					construction.</p><br>
+					<p>Then you will need to provide the folder_id of the folder that you 
+					will be uploading this folder to.</p>
+					<p>Finally, you will call the upload method on the <code>Box_Rest_Client</code> 
+					passing in the <code>$file</code> that you created. 
 				</td>
 				<td class="spanner" id="code">
 					<?php br(23); ?>
@@ -146,11 +161,20 @@ $my_folder = new Box_Client_Folder();
 $my_folder->attr(\'name\',\'New Folder\');
 $my_folder->attr(\'parent_id\', 0);
 
-$my_folder->attr(\'share\',false);
+$my_folder->attr(\'share\',0);
 
 
 $box_net->create($folder);
-?>')?>
+?>'); br(16); ?>
+
+<?php highlight_string('<?php 
+
+$file = new Box_Client_File($_FILES[\'file\'][\'tmp_name\'], $_FILES[\'file\'][\'name\']);
+
+$file->attr(\'folder_id\', 0);
+
+$box_net->upload($file);
+?>'); ?>
 				</td>
 			</tr>
 		</table>
