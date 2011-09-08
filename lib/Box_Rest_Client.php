@@ -198,11 +198,11 @@ class Box_Rest_Client {
 	public $ticket;
 	public $auth_token;
 	
-	private $api_version = '1.0';
-	private $base_url = 'https://www.box.net/api';
-	private $upload_url = 'https://upload.box.net/api';
+	public $api_version = '1.0';
+	public $base_url = 'https://www.box.net/api';
+	public $upload_url = 'https://upload.box.net/api';
 
-	
+	// Not implemented yet sadly..
 	public $MOBILE = false;
 	
 	/**
@@ -263,16 +263,19 @@ class Box_Rest_Client {
 	 * This folder method is provided as it tends to be what a lot of people will most 
 	 * likely try to do. It returns a list of folders/files utilizing our 
 	 * Box_Client_Folder and Box_Client_File classes instead of the raw tree array 
-	 * that is normally returned. 
+	 * that is normally returned.
 	 * 
 	 * You can totally ignore this and instead rely entirely on get/post and parse the 
-	 * tree yourself if it doesn't quite do what you want. 
+	 * tree yourself if it doesn't quite do what you want.
+	 *
+	 * The default params ensure that the tree is returned as quickly as possible. Only
+	 * the first level is returned and only in a simple format.
 	 * 
 	 * @param int $root The root directory that you want to load the tree from.
 	 * @param string $params Any additional params you want to pass, comma separated.
 	 * @return Box_Client_Folder 
 	 */
-	public function folder($root,$params = array('params' => array('nozip'))) {
+	public function folder($root,$params = array('params' => array('nozip','onelevel','simple'))) {
 		$params['folder_id'] = $root;
 		$res = $this->get('get_account_tree', $params);
 	
@@ -328,10 +331,33 @@ class Box_Rest_Client {
 	}
 	
 	/**
-	 * Returns the url to upload a file to the specified parent folder
+	 * Returns the url to upload a file to the specified parent folder. Beware!
+	 * If you screw up the type the upload will probably still go throguh properly
+	 * but the results may be unexpected. For example, uploading and overwriting a
+	 * end up doing two very different things if you pass in the wrong kind of id
+	 * (a folder id vs a file id).
+	 *
+	 * For the right circumstance to use each type of file, check this:
+	 * http://developers.box.net/w/page/12923951/ApiFunction_Upload%20and%20Download
+	 *
+	 * @param string $type One of upload | overwrite | new_copy
+	 * @param int $id The id of the file or folder that you are uploading to
 	 */
-	public static function upload_url($folder_id = 0) {
+	public function upload_url($type = 'upload',$id = 0) {
+		$url = '';
+		switch(strtolower($type)) {
+			case 'upload':
+				$url = $this->upload_url.'/'.$this->api_version.'/upload/'.$this->auth_token.'/'.$id;
+				break;
+			case 'overwrite':
+				$url = $this->upload_url.'/'.$this->api_version.'/overwrite/'.$this->auth_token.'/'.$id;
+				break;
+			case 'new_copy':
+				$url = $this->upload_url.'/'.$this->api_version.'/new_copy/'.$this->auth_token.'/'.$id;
+				break;
+		}
 		
+		return $url;
 	}
 	
 	/**
@@ -355,15 +381,15 @@ class Box_Rest_Client {
 	public function upload(Box_Client_File &$file, array $params = array()) {
 		if(array_key_exists('new_copy', $params) && $params['new_copy'] && intval($file->attr('id')) !== 0) {
 			// This is a valid file for new copy, we can new_copy
-			$url = $this->upload_url.'/'.$this->api_version.'/new_copy/'.$this->auth_token.'/'.$file->attr('id');
+			$url = $this->upload_url('new_copy',$file->attr('id'));
 		}
 		else if(intval($file->attr('file_id')) !== 0 && !$new_copy) {
 			// This file is overwriting another
-			$url = $this->upload_url.'/'.$this->api_version.'/overwrite/'.$this->auth_token.'/'.$file->attr('id');
+			$url = $this->upload_url('overwrite',$file->attr('id'));
 		}
 		else {
 			// This file is a new upload
-			$url = $this->upload_url.'/'.$this->api_version.'/upload/'.$this->auth_token.'/'.$file->attr('id');
+			$url = $this->upload_url('upload',$file->attr('folder_id'));
 		}
 		
 		// assign a file name during construction OR by setting $file->attr('filename'); 
@@ -377,10 +403,30 @@ class Box_Rest_Client {
 		$file->attr('localpath',$new_localpath);
 		$params['file'] = '@'.$file->attr('localpath');
 		
-		$res = $this->parse_result(Rest_Client::post($url,$params));
+		$res = Rest_Client::post($url,$params);
 		// delete the localfile
 		unlink($file->attr('localpath'));
+
+		// This exists because the API returns malformed xml.. as soon as the API
+		// is fixed it will automatically check against the parsed XML instead of
+		// the string. When that happens, there will be a minor update to the library.
+		$failed_codes = array(
+													'wrong auth token',
+													'application_restricted',
+													'upload_some_files_failed',
+													'not_enough_free_space',
+													'filesize_limit_exceeded',
+													'access_denied',
+													'upload_wrong_folder_id',
+													'upload_invalid_file_name'
+												);
 		
+		if(in_array($res,$failed_codes)) {
+			return $res;
+		}
+		else {
+			$res = $this->parse_result($res);
+		}
 		// only import if the status was successful
 		if($res['status'] == 'upload_ok') {
 			$file->import($res['files']['file']);
@@ -511,6 +557,7 @@ class Box_Client_Folder {
 		$this->attr = array();
 		$this->file = array();
 		$this->folder = array();
+
 	}
 
 	/**
@@ -664,6 +711,30 @@ class Box_Client_File {
 	
 	public function tag() {
 		
+	}
+	
+	/**
+	 * The download link to a particular file. You will need to manually pass in
+	 * the authentication token for the download link to work.
+	 *
+	 * @param Box_Rest_Client $box_net A reference to the client library.
+	 * @param int $version The version number of the file to download, leave blank
+	 * 											if you want to download the latest version.
+	 *
+	 * @return string $url The url link to the download
+	 */
+	public function download_url(Box_Rest_Client $box_net, $version = 0) {
+		$url = $box_net->$base_url.'/'.$box_net->$api_version;
+		if($version == 0) {
+			// not a specific version download
+			$url .= '/download/'.$box_net->auth_token.'/'.$this->attr('id');
+		}
+		else {
+			// downloading a certain version
+			$url .= '/download_version/'.$box_net->auth_token.'/'.$this->attr('id').'/'.$version;
+		}
+		
+		return $url;
 	}
 }
 
