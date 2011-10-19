@@ -1,8 +1,6 @@
 ## What is it?
 The Box_Rest_Client is a simple way to access the Box.net api utilizing the ReST 
-api through PHP. _The client is currently in early alpha testing and is 
-undergoing daily fixes and features._ If you have any questions please email me 
-at xangelo@gmail.com. For all bugs/issues, please report them on GitHub.
+api through PHP.
 
 ## Dependencies
 - cURL
@@ -12,15 +10,13 @@ tests in other vresions, please let me know and this can be updated)
 
 ## How does it work?
 The `Box_Rest_Client` provides a standard way to execute various api methods from 
-the box.net api (version 1.0 at the time of writing this). While the library aims 
-to be very low-level (I'm not making any assumptions on what you want to do with 
-the data) that inherently makes it quite powerful. 
+the Box API.
 
 Rather than providing "aliases" to the box.net api, the client completely relies 
 on the api_methods. Except in a few cases (authentication, folder_tree, etc.) you 
 will mostly be calling the api methods directly. 
 
-This happens through the use of the exec() method which acceps an API method as 
+This happens through the use of the exec() method which accepts an API method as 
 well as any parameters that need to be passed. As an example, to use the 
 get_account_tree api method you would do something like the following (note, the 
 example assumes you have already set an api_key and authenticated a user).
@@ -68,8 +64,4 @@ aliased as ```$box_rest_client->folder(0)```
 That will instantly return a list of files/folders below the folder wth id 0. 
 It will also ensure that the folders/files are of type `Box_Client_Folder`/`Box_Client_File` 
 respectively. These provide a standard interface for accessing properties of 
-the files and will eventually mean that we can add inidividual features to it.
-
-## Bugs/Issues 
-If you find any issues while utilizing the Box_Rest_Client, please log them on 
-GitHub instead of emailing me. 
+the files and will eventually mean that we can add individual features to it.
