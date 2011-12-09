@@ -329,7 +329,7 @@ class Box_Rest_Client {
 	
 	/**
 	 * Returns the url to upload a file to the specified parent folder. Beware!
-	 * If you screw up the type the upload will probably still go throguh properly
+	 * If you screw up the type the upload will probably still go through properly
 	 * but the results may be unexpected. For example, uploading and overwriting a
 	 * end up doing two very different things if you pass in the wrong kind of id
 	 * (a folder id vs a file id).
@@ -373,9 +373,10 @@ class Box_Rest_Client {
 	 * @param Box_Client_File $file
 	 * @param array $params A list of valid input params can be found at the Download
 	 * 											and upload method list at http://developers.box.net
+	 * @param bool $upload_then_delete If set, it will delete the file if the upload was successful
 	 * 
 	 */
-	public function upload(Box_Client_File &$file, array $params = array()) {
+	public function upload(Box_Client_File &$file, array $params = array(), $upload_then_delete = false) {
 		if(array_key_exists('new_copy', $params) && $params['new_copy'] && intval($file->attr('id')) !== 0) {
 			// This is a valid file for new copy, we can new_copy
 			$url = $this->upload_url('new_copy',$file->attr('id'));
@@ -394,15 +395,21 @@ class Box_Rest_Client {
 		$split = explode('\\',$file->attr('localpath'));
 		$split[count($split)-1] = $file->attr('filename');
 		$new_localpath = implode('\\',$split);
-		if(!rename($file->attr('localpath'), $new_localpath)) {
-			throw new Box_Rest_Client_Exception('Uploaded file could not be renamed.');
+		
+		// only rename if the old filename and the new filename are different
+		if($file->attr('localpath') != $new_localpath) {
+			if(!rename($file->attr('localpath'), $new_localpath)) {
+				throw new Box_Rest_Client_Exception('Uploaded file could not be renamed.');
+			}
+			else {
+				$file->attr('localpath',$new_localpath);
+			}
 		}
-		$file->attr('localpath',$new_localpath);
+
 		$params['file'] = '@'.$file->attr('localpath');
 		
 		$res = Rest_Client::post($url,$params);
-		// delete the localfile
-		unlink($file->attr('localpath'));
+
 
 		// This exists because the API returns malformed xml.. as soon as the API
 		// is fixed it will automatically check against the parsed XML instead of
@@ -427,8 +434,13 @@ class Box_Rest_Client {
 		// only import if the status was successful
 		if($res['status'] == 'upload_ok') {
 			$file->import($res['files']['file']);
+			
+			// only delete if the upload was successful and the developer requested it
+			if($upload_then_delete) {
+				unlink($file->attr('localpath'));
+			}
 		}
-		
+
 		return $res['status'];
 	}
 	
